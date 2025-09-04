@@ -2,6 +2,7 @@
 {% load form_extras %}
 {% block content %}
 <div class="row g-4">
+  <!-- Левая колонка: контакты -->
   <div class="col-lg-6">
     <div class="p-4 bg-white rounded-3 shadow-sm">
       <h2 class="h5 mb-3">Контакты</h2>
@@ -12,6 +13,8 @@
       </ul>
     </div>
   </div>
+
+  <!-- Правая колонка: форма обратной связи -->
   <div class="col-lg-6">
     <div class="p-4 bg-white rounded-3 shadow-sm">
       <h2 class="h5 mb-3">Обратная связь</h2>
@@ -22,18 +25,22 @@
 
       <form method="post" action="{% url 'catalog:contacts' %}">
         {% csrf_token %}
+
         <div class="mb-3">
           <label class="form-label" for="id_name">Имя</label>
           {{ form.name|add_class:"form-control" }}
         </div>
+
         <div class="mb-3">
           <label class="form-label" for="id_email">Email</label>
           {{ form.email|add_class:"form-control" }}
         </div>
+
         <div class="mb-3">
           <label class="form-label" for="id_message">Сообщение</label>
           {{ form.message|add_class:"form-control" }}
         </div>
+
         <button type="submit" class="btn btn-primary">Отправить</button>
       </form>
     </div>
