@@ -25,9 +25,10 @@ class Category(models.Model):
     def save(self, *args, **kwargs) -> None:
         """
         Автогенерация слага при отсутствии.
+        Поддержка кириллицы через allow_unicode=True.
         """
         if not self.slug:
-            self.slug = slugify(self.name)
+            self.slug = slugify(self.name, allow_unicode=True)
         super().save(*args, **kwargs)
 
 
@@ -61,7 +62,8 @@ class Product(models.Model):
     def save(self, *args, **kwargs) -> None:
         """
         Автогенерация слага при отсутствии.
+        Поддержка кириллицы через allow_unicode=True.
         """
         if not self.slug:
-            self.slug = slugify(self.title)
+            self.slug = slugify(self.title, allow_unicode=True)
         super().save(*args, **kwargs)
