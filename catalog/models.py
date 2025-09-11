@@ -1,8 +1,25 @@
-# catalog/models.py
 from __future__ import annotations
 
 from django.db import models
 from django.utils.text import slugify
+
+
+class ContactInfo(models.Model):
+    """
+    Контактные данные магазина (редактируются через админку).
+    """
+    email = models.EmailField("Email", blank=True, default="")
+    phone = models.CharField("Телефон", max_length=50, blank=True, default="")
+    address = models.CharField("Адрес", max_length=255, blank=True, default="")
+    working_hours = models.CharField("Время работы", max_length=255, blank=True, default="")
+    map_embed = models.TextField("Карта (iframe)", blank=True, default="")
+
+    class Meta:
+        verbose_name = "Контакты"
+        verbose_name_plural = "Контакты"
+
+    def __str__(self) -> str:
+        return self.email or self.phone or "Контакты"
 
 
 class Category(models.Model):

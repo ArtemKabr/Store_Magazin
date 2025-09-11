@@ -1,0 +1,20 @@
+[
+{
+  "model": "catalog.category",
+  "pk": 13,
+  "fields": {
+    "name": "Ноутбуки",
+    "slug": "ноутбуки",
+    "description": ""
+  }
+},
+{
+  "model": "catalog.category",
+  "pk": 14,
+  "fields": {
+    "name": "Смартфоны",
+    "slug": "смартфоны",
+    "description": ""
+  }
+}
+]

@@ -1,6 +1,6 @@
 # Store_Magazin (Django, Python 3.12)
 
-Учебный интернет-магазин. Приложение `catalog`, страницы Home/Contacts, Bootstrap 5.
+Учебный интернет-магазин. Приложение `catalog`, страницы Home/Contacts, Bootstrap 5..
 
 ## Запуск (Windows)
 ```bash
