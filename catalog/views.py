@@ -1,11 +1,31 @@
 # catalog/views.py
 """Контроллеры (views) для приложения catalog."""
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
-from .forms import ContactForm  # используется на /contacts/
+from .forms import ContactForm, ProductForm   # используется на /contacts/
 from .models import Product, ContactInfo  # добавили ContactInfo
+
+
+def product_create_view(request):
+    """
+    Создание товара через форму.
+    После успешного сохранения — редирект на детальную страницу.
+    """
+    if request.method == "POST":
+        form = ProductForm(request.POST, request.FILES)
+        if form.is_valid():
+            product = form.save()  # слаг сгенерируется в модели при save()
+            return redirect(product.get_absolute_url())
+    else:
+        form = ProductForm()
+
+    return render(
+        request,
+        "catalog/product_form.html",
+        {"title": "Добавить товар", "form": form},
+    )
 
 
 def home_view(request: HttpRequest) -> HttpResponse:
