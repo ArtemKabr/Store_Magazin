@@ -1,3 +1,4 @@
+# config/urls.py
 """URL-маршруты приложения catalog."""
 from django.urls import path
 from . import views

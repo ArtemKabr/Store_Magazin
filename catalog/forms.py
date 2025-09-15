@@ -1,3 +1,4 @@
+# catalog/forms.py
 """Формы приложения catalog."""
 from django import forms
 from .models import Product
