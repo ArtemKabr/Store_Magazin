@@ -2,6 +2,7 @@
 """Контроллеры (views) для приложения catalog."""
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render, get_object_or_404
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from .forms import ContactForm  # используется на /contacts/
 from .models import Product, ContactInfo  # добавили ContactInfo
@@ -9,16 +10,24 @@ from .models import Product, ContactInfo  # добавили ContactInfo
 
 def home_view(request: HttpRequest) -> HttpResponse:
     """
-    Главная: выводит список товаров и печатает в консоль последние 5.
-
-    Вывод в консоль нужен для проверки ДЗ:
-    пример строки — "[home] Последние 5: 12:iPhone 14 (799.99 ₽), ..."
+    Главная: список товаров с пагинацией.
+    Параметр страницы: ?page=<num>
     """
-    # товары для страницы
-    products = Product.objects.select_related("category").order_by("-created_at")[:12]
+    qs = Product.objects.select_related("category").order_by("-created_at")
 
-    # последние 5 для консоли
-    last_five = Product.objects.order_by("-created_at")[:5]
+    # Размер страницы можно поменять при необходимости
+    paginator = Paginator(qs, 8)
+
+    page_number = request.GET.get("page", 1)
+    try:
+        page_obj = paginator.page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+
+    # (опционально) выводим последние 5 в консоль для проверки
+    last_five = qs[:5]
     print(
         "[home] Последние 5:",
         ", ".join(f"{p.id}:{p.title} ({p.price} ₽)" for p in last_five),
@@ -30,7 +39,10 @@ def home_view(request: HttpRequest) -> HttpResponse:
         "catalog/home.html",
         {
             "title": "Магазин — Главная",
-            "products": products,
+            "products": page_obj,          # теперь это страница
+            "page_obj": page_obj,          # стандартное имя под пагинацию
+            "paginator": paginator,
+            "is_paginated": page_obj.has_other_pages(),
         },
     )
 
