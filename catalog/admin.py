@@ -22,4 +22,8 @@ class ProductAdmin(admin.ModelAdmin):
     list_filter = ("is_published", "category")
     search_fields = ("title", "slug", "description")
     prepopulated_fields = {"slug": ("title",)}
+    ordering = ("-created_at",)
+    list_editable = ("is_published",)
+    list_select_related = ("category",)
+
 
