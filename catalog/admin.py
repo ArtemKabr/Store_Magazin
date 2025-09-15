@@ -10,12 +10,14 @@ class ContactInfoAdmin(admin.ModelAdmin):
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
+    """Настройки отображения категорий в админке."""
     list_display = ("id", "name", "slug")
     search_fields = ("name",)
     prepopulated_fields = {"slug": ("name",)}
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
+    """Настройки отображения товаров в админке."""
     list_display = ("id", "title", "category", "price", "is_published", "created_at")
     list_filter = ("is_published", "category")
     search_fields = ("title", "slug", "description")
