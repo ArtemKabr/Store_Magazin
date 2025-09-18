@@ -20,7 +20,7 @@ class Post(models.Model):
     preview = models.ImageField("Превью", upload_to="blog/", blank=True, null=True)
     created_at = models.DateTimeField("Создано", auto_now_add=True)
     is_published = models.BooleanField("Опубликовано", default=False)
-    views = models.PositiveIntegerField("Просмотры", default=0)
+    views = models.PositiveIntegerField("Просмотры", default=0, editable=False)
 
     class Meta:
         verbose_name = "Статья"
