@@ -1,5 +1,6 @@
 # catalog/views.py
 """Контроллеры (views) для приложения catalog на CBV."""
+from blog.models import Post
 from typing import Any, Dict
 
 from django.http import HttpResponse
@@ -18,23 +19,21 @@ class HomeView(ListView):
     """
     model = Product
     template_name = "catalog/home.html"
-    context_object_name = "products"  # чтобы в шаблоне было products/page_obj
+    context_object_name = "products"
     paginate_by = 8
 
     def get_queryset(self):
         """Оптимизированный ORM-запрос + сортировка по дате создания (убыв.)."""
-        qs = (
-            Product.objects.select_related("category")
-            .order_by("-created_at")
-        )
-        # (опционально) отладка последних 5
-        last_five = qs[:5]
-        print(
-            "[home] Последние 5:",
-            ", ".join(f"{p.id}:{p.title} ({p.price} ₽)" for p in last_five),
-            flush=True,
-        )
-        return qs
+        return Product.objects.select_related("category").order_by("-created_at")
+
+    def get_context_data(self, **kwargs):
+        """
+        Расширяем контекст: последние 3 опубликованные статьи блога.
+        """
+        ctx = super().get_context_data(**kwargs)
+        ctx["title"] = "Магазин — Главная"
+        ctx["latest_posts"] = Post.objects.filter(is_published=True).order_by("-created_at")[:3]
+        return ctx
 
 
 class ProductDetailView(DetailView):

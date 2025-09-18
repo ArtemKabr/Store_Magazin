@@ -18,6 +18,8 @@ INSTALLED_APPS = [
     "django.contrib.admin", "django.contrib.auth", "django.contrib.contenttypes",
     "django.contrib.sessions", "django.contrib.messages", "django.contrib.staticfiles",
     "catalog",
+    "blog",
+
 ]
 
 MIDDLEWARE = [
@@ -71,6 +73,10 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# === Email для тестов (консоль) ===
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+DEFAULT_FROM_EMAIL = "artemkabr7@gmail.com"
 
 # 🔎 Удобный логгер
 LOGGING = {
