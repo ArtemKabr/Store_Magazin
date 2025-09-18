@@ -1,1 +1,25 @@
-body { background-color: #f7f7f7; }
+/* Баннер-видео */
+.video-banner {
+  position: relative;
+  width: 100%;
+  height: 100vh;        /* во весь экран */
+  overflow: hidden;
+}
+
+.video-banner video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;    /* растягивает без искажений */
+}
+
+.video-banner .video-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3); /* лёгкое затемнение */
+}

@@ -1,24 +1,53 @@
 # catalog/views.py
 """Контроллеры (views) для приложения catalog."""
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
-from .forms import ContactForm  # используется на /contacts/
+from .forms import ContactForm, ProductForm   # используется на /contacts/
 from .models import Product, ContactInfo  # добавили ContactInfo
+
+
+def product_create_view(request):
+    """
+    Создание товара через форму.
+    После успешного сохранения — редирект на детальную страницу.
+    """
+    if request.method == "POST":
+        form = ProductForm(request.POST, request.FILES)
+        if form.is_valid():
+            product = form.save()  # слаг сгенерируется в модели при save()
+            return redirect(product.get_absolute_url())
+    else:
+        form = ProductForm()
+
+    return render(
+        request,
+        "catalog/product_form.html",
+        {"title": "Добавить товар", "form": form},
+    )
 
 
 def home_view(request: HttpRequest) -> HttpResponse:
     """
-    Главная: выводит список товаров и печатает в консоль последние 5.
-
-    Вывод в консоль нужен для проверки ДЗ:
-    пример строки — "[home] Последние 5: 12:iPhone 14 (799.99 ₽), ..."
+    Главная: список товаров с пагинацией.
+    Параметр страницы: ?page=<num>
     """
-    # товары для страницы
-    products = Product.objects.select_related("category").order_by("-created_at")[:12]
+    qs = Product.objects.select_related("category").order_by("-created_at")
 
-    # последние 5 для консоли
-    last_five = Product.objects.order_by("-created_at")[:5]
+    # Размер страницы можно поменять при необходимости
+    paginator = Paginator(qs, 8)
+
+    page_number = request.GET.get("page", 1)
+    try:
+        page_obj = paginator.page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+
+    # (опционально) выводим последние 5 в консоль для проверки
+    last_five = qs[:5]
     print(
         "[home] Последние 5:",
         ", ".join(f"{p.id}:{p.title} ({p.price} ₽)" for p in last_five),
@@ -30,7 +59,25 @@ def home_view(request: HttpRequest) -> HttpResponse:
         "catalog/home.html",
         {
             "title": "Магазин — Главная",
-            "products": products,
+            "products": page_obj,          # теперь это страница
+            "page_obj": page_obj,          # стандартное имя под пагинацию
+            "paginator": paginator,
+            "is_paginated": page_obj.has_other_pages(),
+        },
+    )
+
+
+def product_detail_view(request: HttpRequest, pk: int) -> HttpResponse:
+    """
+    Детальная страница товара.
+    """
+    product = get_object_or_404(Product.objects.select_related("category"), pk=pk)
+    return render(
+        request,
+        "catalog/product_detail.html",
+        {
+            "title": product.title,
+            "product": product,
         },
     )
 
