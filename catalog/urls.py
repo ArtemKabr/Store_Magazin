@@ -1,14 +1,13 @@
-# config/urls.py
-"""URL-маршруты приложения catalog."""
+"""URL-маршруты приложения catalog (CBV)."""
 from django.urls import path
-from . import views
+from .views import HomeView, ContactsView, ProductDetailView, ProductCreateView
 
 app_name = "catalog"
 
 urlpatterns = [
-    path("", views.home_view, name="home"),                    # /
-    path("home/", views.home_view, name="home_alias"),         # /home/
-    path("contacts/", views.contacts_view, name="contacts"),   # /contacts/
-    path("product/<int:pk>/", views.product_detail_view, name="product"),  # /детальная страница товара/
-    path("product/create/", views.product_create_view, name="product_create") #/новая форма/
+    path("", HomeView.as_view(), name="home"),                                 # /
+    path("home/", HomeView.as_view(), name="home_alias"),                      # /home/
+    path("contacts/", ContactsView.as_view(), name="contacts"),                # /contacts/
+    path("product/<int:pk>/", ProductDetailView.as_view(), name="product"),    # /product/<pk>/
+    path("product/create/", ProductCreateView.as_view(), name="product_create")# /product/create/
 ]

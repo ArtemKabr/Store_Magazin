@@ -1,100 +1,88 @@
 # catalog/views.py
-"""Контроллеры (views) для приложения catalog."""
-from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render, get_object_or_404, redirect
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+"""Контроллеры (views) для приложения catalog на CBV."""
+from blog.models import Post
+from typing import Any, Dict
 
-from .forms import ContactForm, ProductForm   # используется на /contacts/
-from .models import Product, ContactInfo  # добавили ContactInfo
+from django.http import HttpResponse
+from django.urls import reverse_lazy
+from django.views.generic import TemplateView, FormView, ListView, DetailView, CreateView
+from django.db.models import F
+
+from .forms import ContactForm, ProductForm
+from .models import Product, ContactInfo
 
 
-def product_create_view(request):
+class HomeView(ListView):
     """
-    Создание товара через форму.
-    После успешного сохранения — редирект на детальную страницу.
-    """
-    if request.method == "POST":
-        form = ProductForm(request.POST, request.FILES)
-        if form.is_valid():
-            product = form.save()  # слаг сгенерируется в модели при save()
-            return redirect(product.get_absolute_url())
-    else:
-        form = ProductForm()
-
-    return render(
-        request,
-        "catalog/product_form.html",
-        {"title": "Добавить товар", "form": form},
-    )
-
-
-def home_view(request: HttpRequest) -> HttpResponse:
-    """
-    Главная: список товаров с пагинацией.
+    Главная страница: список товаров с пагинацией.
     Параметр страницы: ?page=<num>
     """
-    qs = Product.objects.select_related("category").order_by("-created_at")
+    model = Product
+    template_name = "catalog/home.html"
+    context_object_name = "products"
+    paginate_by = 8
 
-    # Размер страницы можно поменять при необходимости
-    paginator = Paginator(qs, 8)
+    def get_queryset(self):
+        """Оптимизированный ORM-запрос + сортировка по дате создания (убыв.)."""
+        return Product.objects.select_related("category").order_by("-created_at")
 
-    page_number = request.GET.get("page", 1)
-    try:
-        page_obj = paginator.page(page_number)
-    except PageNotAnInteger:
-        page_obj = paginator.page(1)
-    except EmptyPage:
-        page_obj = paginator.page(paginator.num_pages)
-
-    # (опционально) выводим последние 5 в консоль для проверки
-    last_five = qs[:5]
-    print(
-        "[home] Последние 5:",
-        ", ".join(f"{p.id}:{p.title} ({p.price} ₽)" for p in last_five),
-        flush=True,
-    )
-
-    return render(
-        request,
-        "catalog/home.html",
-        {
-            "title": "Магазин — Главная",
-            "products": page_obj,          # теперь это страница
-            "page_obj": page_obj,          # стандартное имя под пагинацию
-            "paginator": paginator,
-            "is_paginated": page_obj.has_other_pages(),
-        },
-    )
+    def get_context_data(self, **kwargs):
+        """
+        Расширяем контекст: последние 3 опубликованные статьи блога.
+        """
+        ctx = super().get_context_data(**kwargs)
+        ctx["title"] = "Магазин — Главная"
+        ctx["latest_posts"] = Post.objects.filter(is_published=True).order_by("-created_at")[:3]
+        return ctx
 
 
-def product_detail_view(request: HttpRequest, pk: int) -> HttpResponse:
+class ProductDetailView(DetailView):
     """
     Детальная страница товара.
     """
-    product = get_object_or_404(Product.objects.select_related("category"), pk=pk)
-    return render(
-        request,
-        "catalog/product_detail.html",
-        {
-            "title": product.title,
-            "product": product,
-        },
-    )
+    model = Product
+    template_name = "catalog/product_detail.html"
+    context_object_name = "product"
+
+    def get_queryset(self):
+        """Жадно подтягиваем категорию."""
+        return Product.objects.select_related("category")
 
 
-def contacts_view(request: HttpRequest) -> HttpResponse:
-    success = False
-    form = ContactForm(request.POST or None)
+class ProductCreateView(CreateView):
+    """
+    Создание товара через форму.
+    После успешного сохранения — редирект на детальную страницу товара
+    (за счёт model.get_absolute_url()).
+    """
+    model = Product
+    form_class = ProductForm
+    template_name = "catalog/product_form.html"
+    # success_url не нужен, т.к. у модели должен быть get_absolute_url()
 
-    if request.method == "POST" and form.is_valid():
-        success = True
-        form = ContactForm()
 
-    contacts = ContactInfo.objects.first()
+class ContactsView(FormView):
+    """
+    Контакты с формой обратной связи.
+    После успешной отправки показываем одноразовый флаг success.
+    """
+    template_name = "catalog/contacts.html"
+    form_class = ContactForm
+    success_url = reverse_lazy("catalog:contacts")
 
-    return render(request, "catalog/contacts.html", {
-        "title": "Контакты",
-        "form": form,
-        "success": success,
-        "contacts": contacts,
-    })
+    def form_valid(self, form: ContactForm) -> HttpResponse:
+        """
+        Здесь можно добавить сохранение/отправку email.
+        Для демо — считаем, что письмо отправлено.
+        """
+        # TODO: логика отправки письма/сохранения в БД
+        self.request.session["contacts_success"] = True
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        """Пробрасываем ContactInfo и одноразовый success-флаг в шаблон."""
+        ctx = super().get_context_data(**kwargs)
+        ctx["title"] = "Контакты"
+        ctx["contacts"] = ContactInfo.objects.first()
+        ctx["success"] = self.request.session.pop("contacts_success", False)
+        return ctx
