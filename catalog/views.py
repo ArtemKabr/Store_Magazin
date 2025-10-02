@@ -7,6 +7,8 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .forms import ContactForm, ProductForm   # используется на /contacts/
 from .models import Product, ContactInfo  # добавили ContactInfo
 
+import logging
+logger = logging.getLogger(__name__)
 
 def product_create_view(request):
     """
@@ -48,10 +50,9 @@ def home_view(request: HttpRequest) -> HttpResponse:
 
     # (опционально) выводим последние 5 в консоль для проверки
     last_five = qs[:5]
-    print(
-        "[home] Последние 5:",
+    logger.debug(
+        "[home] Последние 5: %s",
         ", ".join(f"{p.id}:{p.title} ({p.price} ₽)" for p in last_five),
-        flush=True,
     )
 
     return render(

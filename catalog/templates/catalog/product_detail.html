@@ -12,6 +12,8 @@
     <p>{{ product.description }}</p>
     <p class="fw-bold h5">{{ product.price }} ₽</p>
     <a href="{% url 'catalog:home' %}" class="btn btn-secondary mt-3">← Назад к каталогу</a>
+    <a href="{% url 'catalog:product_update' product.pk %}" class="btn btn-outline-primary mt-3">Редактировать</a>
+    <a href="{% url 'catalog:product_delete' product.pk %}" class="btn btn-outline-danger mt-3">Удалить</a>
   </div>
 </div>
 {% endblock %}
