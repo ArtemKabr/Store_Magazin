@@ -98,3 +98,40 @@ def contacts_view(request: HttpRequest) -> HttpResponse:
         "success": success,
         "contacts": contacts,
     })
+
+
+def product_update_view(request: HttpRequest, pk: int) -> HttpResponse:
+    """
+    Редактирование товара через форму.
+    После успешного сохранения — редирект на детальную страницу.
+    """
+    product = get_object_or_404(Product, pk=pk)
+    if request.method == "POST":
+        form = ProductForm(request.POST, request.FILES, instance=product)
+        if form.is_valid():
+            product = form.save()
+            return redirect(product.get_absolute_url())
+    else:
+        form = ProductForm(instance=product)
+
+    return render(
+        request,
+        "catalog/product_form.html",
+        {"title": f"Редактировать: {product.title}", "form": form},
+    )
+
+
+def product_delete_view(request: HttpRequest, pk: int) -> HttpResponse:
+    """
+    Удаление товара с подтверждением.
+    """
+    product = get_object_or_404(Product, pk=pk)
+    if request.method == "POST":
+        product.delete()
+        return redirect("catalog:home")
+
+    return render(
+        request,
+        "catalog/product_delete_confirm.html",
+        {"title": f"Удалить: {product.title}", "product": product},
+    )
