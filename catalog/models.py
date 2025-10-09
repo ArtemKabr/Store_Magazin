@@ -113,7 +113,7 @@ class Product(models.Model):
         URL детальной страницы товара.
         Используется для редиректов после создания/редактирования.
         """
-        return reverse("catalog:product", kwargs={"pk": self.pk})
+        return reverse("catalog:product_detail", kwargs={"pk": self.pk})
 
     @property
     def short_description(self) -> str:

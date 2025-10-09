@@ -27,3 +27,13 @@ class ProductAdmin(admin.ModelAdmin):
     list_select_related = ("category",)
 
 
+# поля только для чтения (чтобы случайно не трогать)
+    readonly_fields = ("created_at", "updated_at")
+
+# кастомизация отображения цены
+    def formatted_price(self, obj):
+        return f"{obj.price} ₽"
+    formatted_price.short_description = "Цена"
+
+
+

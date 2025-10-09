@@ -1,4 +1,4 @@
-# config/settings.py
+# config/urls.py
 """Корневые URL проекта: подключение URL приложения catalog через include."""
 from django.contrib import admin
 from django.urls import path, include

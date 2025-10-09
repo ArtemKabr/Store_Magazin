@@ -7,6 +7,8 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .forms import ContactForm, ProductForm   # используется на /contacts/
 from .models import Product, ContactInfo  # добавили ContactInfo
 
+import logging
+logger = logging.getLogger(__name__)
 
 def product_create_view(request):
     """
@@ -48,10 +50,9 @@ def home_view(request: HttpRequest) -> HttpResponse:
 
     # (опционально) выводим последние 5 в консоль для проверки
     last_five = qs[:5]
-    print(
-        "[home] Последние 5:",
+    logger.debug(
+        "[home] Последние 5: %s",
         ", ".join(f"{p.id}:{p.title} ({p.price} ₽)" for p in last_five),
-        flush=True,
     )
 
     return render(
@@ -98,3 +99,40 @@ def contacts_view(request: HttpRequest) -> HttpResponse:
         "success": success,
         "contacts": contacts,
     })
+
+
+def product_update_view(request: HttpRequest, pk: int) -> HttpResponse:
+    """
+    Редактирование товара через форму.
+    После успешного сохранения — редирект на детальную страницу.
+    """
+    product = get_object_or_404(Product, pk=pk)
+    if request.method == "POST":
+        form = ProductForm(request.POST, request.FILES, instance=product)
+        if form.is_valid():
+            product = form.save()
+            return redirect(product.get_absolute_url())
+    else:
+        form = ProductForm(instance=product)
+
+    return render(
+        request,
+        "catalog/product_form.html",
+        {"title": f"Редактировать: {product.title}", "form": form},
+    )
+
+
+def product_delete_view(request: HttpRequest, pk: int) -> HttpResponse:
+    """
+    Удаление товара с подтверждением.
+    """
+    product = get_object_or_404(Product, pk=pk)
+    if request.method == "POST":
+        product.delete()
+        return redirect("catalog:home")
+
+    return render(
+        request,
+        "catalog/product_delete_confirm.html",
+        {"title": f"Удалить: {product.title}", "product": product},
+    )
