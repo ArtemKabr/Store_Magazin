@@ -18,6 +18,7 @@ INSTALLED_APPS = [
     "django.contrib.admin", "django.contrib.auth", "django.contrib.contenttypes",
     "django.contrib.sessions", "django.contrib.messages", "django.contrib.staticfiles",
     "catalog",
+    "users",
 ]
 
 MIDDLEWARE = [
@@ -82,3 +83,10 @@ LOGGING = {
         "django.db.backends": {"handlers": ["console"], "level": "INFO"},
     },
 }
+
+
+AUTH_USER_MODEL = "users.User"
+
+# 🔁 Редиректы после входа и выхода из аккаунта
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"

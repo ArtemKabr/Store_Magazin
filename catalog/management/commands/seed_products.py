@@ -1,8 +1,8 @@
 # catalog/management/commands/seed_products.py
 from __future__ import annotations
-
 from hashlib import md5
 from decimal import Decimal
+from pathlib import Path
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
@@ -11,17 +11,15 @@ from django.utils.text import slugify
 from catalog.models import Category, Product
 
 
+# путь к папке с изображениями
+MEDIA_ROOT = Path(__file__).resolve().parent.parent.parent.parent / "media" / "products"
+
+
 def make_unique_slug(text: str, used: set[str]) -> str:
-    """
-    Генерация уникального slug.
-    - Поддержка кириллицы (allow_unicode=True)
-    - Если slug пустой — берём md5-хэш
-    - Проверяем уникальность внутри used
-    """
+    """Генерация уникального slug (с поддержкой кириллицы)."""
     base = slugify(text, allow_unicode=True).strip()
     if not base:
         base = md5(text.encode("utf-8")).hexdigest()[:8]
-
     slug = base
     i = 1
     while slug in used:
@@ -32,9 +30,9 @@ def make_unique_slug(text: str, used: set[str]) -> str:
 
 
 class Command(BaseCommand):
-    """Кастомная команда для очистки и наполнения БД тестовыми категориями и продуктами."""
+    """Команда для очистки и наполнения БД тестовыми категориями и продуктами."""
 
-    help = "Очищает таблицы Category и Product, добавляет тестовые записи."
+    help = "Очищает таблицы Category и Product, добавляет тестовые записи с фото, если найдены в media/products."
 
     def handle(self, *args, **options):
         with transaction.atomic():
@@ -50,15 +48,14 @@ class Command(BaseCommand):
             ]
 
             used_cat_slugs: set[str] = set()
-            categories: list[Category] = []
-            for name, desc in categories_data:
-                categories.append(
-                    Category(
-                        name=name,
-                        slug=make_unique_slug(name, used_cat_slugs),
-                        description=desc,
-                    )
+            categories = [
+                Category(
+                    name=name,
+                    slug=make_unique_slug(name, used_cat_slugs),
+                    description=desc,
                 )
+                for name, desc in categories_data
+            ]
             Category.objects.bulk_create(categories)
             categories = list(Category.objects.all())
 
@@ -74,8 +71,17 @@ class Command(BaseCommand):
 
             used_prod_slugs: set[str] = set()
             products: list[Product] = []
+
             for idx, (title, price, desc) in enumerate(products_data):
                 category = categories[idx % len(categories)]
+
+                # === поиск изображения ===
+                slug_name = slugify(title, allow_unicode=True)
+                possible_files = list(MEDIA_ROOT.glob(f"{slug_name}.*"))
+                image_path = None
+                if possible_files:
+                    image_path = f"products/{possible_files[0].name}"
+
                 products.append(
                     Product(
                         title=title,
@@ -84,9 +90,9 @@ class Command(BaseCommand):
                         description=desc,
                         category=category,
                         is_published=True,
+                        image=image_path,  # если найдено фото — привязываем
                     )
                 )
+
             Product.objects.bulk_create(products)
-
-        self.stdout.write(self.style.SUCCESS("✅ Готово! Тестовые данные загружены."))
-
+            self.stdout.write(self.style.SUCCESS("✅ Готово! Тестовые данные и фото загружены."))
