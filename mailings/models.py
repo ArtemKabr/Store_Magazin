@@ -9,7 +9,6 @@ class UserManager(BaseUserManager):
     use_in_migrations = True
 
     def _create_user(self, email, password, **extra_fields):
-        """Создание и сохранение пользователя с email и паролем."""
         if not email:
             raise ValueError("Email обязателен")
         email = self.normalize_email(email)
@@ -19,13 +18,11 @@ class UserManager(BaseUserManager):
         return user
 
     def create_user(self, email=None, password=None, **extra_fields):
-        """Создание обычного пользователя."""
         extra_fields.setdefault("is_staff", False)
         extra_fields.setdefault("is_superuser", False)
         return self._create_user(email, password, **extra_fields)
 
     def create_superuser(self, email=None, password=None, **extra_fields):
-        """Создание суперпользователя."""
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
         return self._create_user(email, password, **extra_fields)
@@ -34,10 +31,14 @@ class UserManager(BaseUserManager):
 class User(AbstractUser):
     """
     Кастомная модель пользователя.
-    Авторизация по email.
+    Поля:
+    - email: уникальный, используется как логин
+    - avatar: изображение
+    - phone: номер телефона
+    - country: страна
     """
-    username = models.CharField(_("Имя пользователя"), max_length=150, blank=True)  # не уникален
-    email = models.EmailField(_("Email"), unique=True)
+    username = models.CharField(_("username"), max_length=150, blank=True)  # не уникален
+    email = models.EmailField(_("email address"), unique=True)
     avatar = models.ImageField(upload_to="avatars/", blank=True, null=True, verbose_name="Аватар")
     phone = models.CharField(max_length=32, blank=True, default="", verbose_name="Телефон")
     country = models.CharField(max_length=64, blank=True, default="", verbose_name="Страна")
@@ -47,9 +48,6 @@ class User(AbstractUser):
 
     objects = UserManager()
 
-    class Meta:
-        verbose_name = "Пользователь"
-        verbose_name_plural = "Пользователи"
-
     def __str__(self) -> str:
         return self.email
+
