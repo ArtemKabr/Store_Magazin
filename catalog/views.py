@@ -1,8 +1,8 @@
 """Контроллеры (views) для приложения catalog."""
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.contrib.auth.decorators import login_required  # ✅ добавлено
+from django.contrib.auth.decorators import login_required
 from .forms import ContactForm, ProductForm
 from .models import Product, ContactInfo
 import logging
@@ -66,7 +66,23 @@ def contacts_view(request: HttpRequest) -> HttpResponse:
     )
 
 
-@login_required(login_url="users:login")  # ✅ редактировать только авторизованным
+
+@login_required(login_url="users:login")
+def product_create_view(request):
+    """Создание товара текущим пользователем."""
+    if request.method == "POST":
+        form = ProductForm(request.POST, request.FILES)
+        if form.is_valid():
+            product = form.save(commit=False)
+            product.owner = request.user  # назначаем владельца
+            product.save()                 # сохраняем в базу
+            return redirect(product.get_absolute_url())  # редирект на страницу товара
+    else:
+        form = ProductForm()
+    return render(request, "catalog/product_form.html", {"form": form})
+
+
+@login_required(login_url="users:login")  #  редактировать только авторизованным
 def product_update_view(request: HttpRequest, pk: int) -> HttpResponse:
     """Редактирование товара через форму."""
     product = get_object_or_404(Product, pk=pk)
@@ -84,10 +100,15 @@ def product_update_view(request: HttpRequest, pk: int) -> HttpResponse:
     )
 
 
-@login_required(login_url="users:login")  # ✅ удалять только авторизованным
+@login_required(login_url="users:login")  #  удалять только авторизованным
 def product_delete_view(request: HttpRequest, pk: int) -> HttpResponse:
-    """Удаление товара с подтверждением."""
+    """Удаление товара с подтверждением (только владелец или модератор)."""
     product = get_object_or_404(Product, pk=pk)
+
+    # Проверка прав
+    if request.user != product.owner and not request.user.has_perm("catalog.delete_product"):
+        return HttpResponseForbidden("У вас нет прав на удаление этого товара.")
+
     if request.method == "POST":
         product.delete()
         return redirect("catalog:home")

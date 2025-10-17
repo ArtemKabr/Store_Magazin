@@ -6,6 +6,8 @@ from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
 
+from config import settings
+
 
 class ContactInfo(models.Model):
     """
@@ -85,11 +87,38 @@ class Product(models.Model):
     created_at = models.DateTimeField("Создано", auto_now_add=True)
     updated_at = models.DateTimeField("Обновлено", auto_now=True)
 
+    # Новые поля
+    STATUS_CHOICES = [
+        ("draft", "Черновик"),
+        ("published", "Опубликован"),
+        ("unpublished", "Снято с публикации"),
+    ]
+
+    status = models.CharField(
+       "Статус",
+        max_length = 20,
+        choices = STATUS_CHOICES,
+        default = "draft",
+    )
+
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete = models.CASCADE,
+        verbose_name = "Владелец",
+        related_name = "products",
+        null = True,
+        blank = True,
+    )
+
     class Meta:
         verbose_name = "Товар"
         verbose_name_plural = "Товары"
         ordering = ("-created_at",)
-        # Индексы под частые выборки/сортировки: главная страница, фильтр по категории
+
+        # Добавлены права и индексы
+        permissions = [
+            ("can_unpublish_product", "Может отменять публикацию продукта"),
+        ]
         indexes = [
             models.Index(fields=("is_published", "-created_at"), name="prod_pub_created_idx"),
             models.Index(fields=("category", "is_published"), name="prod_cat_pub_idx"),
