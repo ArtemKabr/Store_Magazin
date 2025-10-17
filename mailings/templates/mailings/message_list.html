@@ -1,0 +1,24 @@
+{% extends "catalog/base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h4">Сообщения</h1>
+  <a href="{% url 'mailings:message_create' %}" class="btn btn-primary">Добавить</a>
+</div>
+<table class="table table-sm table-bordered align-middle bg-white shadow-sm">
+  <thead><tr><th>Тема</th><th>Тело</th><th></th></tr></thead>
+  <tbody>
+  {% for msg in object_list %}
+    <tr>
+      <td>{{ msg.subject }}</td>
+      <td>{{ msg.body|truncatechars:60 }}</td>
+      <td>
+        <a href="{% url 'mailings:message_edit' msg.pk %}" class="btn btn-sm btn-outline-primary">✎</a>
+        <a href="{% url 'mailings:message_delete' msg.pk %}" class="btn btn-sm btn-outline-danger">🗑</a>
+      </td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="3">Нет сообщений</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

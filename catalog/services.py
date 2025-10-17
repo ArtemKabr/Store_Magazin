@@ -1,5 +1,6 @@
 """Сервисные функции для работы с продуктами."""
-from catalog.models import Product, Category
+
+from catalog.models import Category, Product
 
 
 def get_products_by_category(slug: str):

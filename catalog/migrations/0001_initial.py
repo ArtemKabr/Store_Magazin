@@ -26,15 +26,11 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "name",
-                    models.CharField(
-                        max_length=150, unique=True, verbose_name="Название"
-                    ),
+                    models.CharField(max_length=150, unique=True, verbose_name="Название"),
                 ),
                 (
                     "slug",
-                    models.SlugField(
-                        blank=True, max_length=160, unique=True, verbose_name="Слаг"
-                    ),
+                    models.SlugField(blank=True, max_length=160, unique=True, verbose_name="Слаг"),
                 ),
                 (
                     "description",
@@ -61,21 +57,15 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "email",
-                    models.EmailField(
-                        blank=True, default="", max_length=254, verbose_name="Email"
-                    ),
+                    models.EmailField(blank=True, default="", max_length=254, verbose_name="Email"),
                 ),
                 (
                     "phone",
-                    models.CharField(
-                        blank=True, default="", max_length=50, verbose_name="Телефон"
-                    ),
+                    models.CharField(blank=True, default="", max_length=50, verbose_name="Телефон"),
                 ),
                 (
                     "address",
-                    models.CharField(
-                        blank=True, default="", max_length=255, verbose_name="Адрес"
-                    ),
+                    models.CharField(blank=True, default="", max_length=255, verbose_name="Адрес"),
                 ),
                 (
                     "working_hours",
@@ -88,9 +78,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "map_embed",
-                    models.TextField(
-                        blank=True, default="", verbose_name="Карта (iframe)"
-                    ),
+                    models.TextField(blank=True, default="", verbose_name="Карта (iframe)"),
                 ),
             ],
             options={
@@ -113,9 +101,7 @@ class Migration(migrations.Migration):
                 ("title", models.CharField(max_length=200, verbose_name="Название")),
                 (
                     "slug",
-                    models.SlugField(
-                        blank=True, max_length=220, unique=True, verbose_name="Слаг"
-                    ),
+                    models.SlugField(blank=True, max_length=220, unique=True, verbose_name="Слаг"),
                 ),
                 (
                     "price",
@@ -171,9 +157,7 @@ class Migration(migrations.Migration):
                         fields=["is_published", "-created_at"],
                         name="prod_pub_created_idx",
                     ),
-                    models.Index(
-                        fields=["category", "is_published"], name="prod_cat_pub_idx"
-                    ),
+                    models.Index(fields=["category", "is_published"], name="prod_cat_pub_idx"),
                 ],
             },
         ),

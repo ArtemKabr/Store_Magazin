@@ -16,12 +16,45 @@
     Ваш браузер не поддерживает видео.
   </video>
   <div class="video-overlay d-flex justify-content-center align-items-center">
-    </div>
+  </div>
 </div>
 
 <div class="container mt-5">
   <h1 class="h4 mb-4">Каталог</h1>
 
+  {# ✅ Блок статистики рассылок — только если is_manager=True передан из views.py #}
+  {% if is_manager %}
+    {% if total_mailings is not None %}
+    <div class="row text-center mb-4">
+      <div class="col-md-4 mb-3">
+        <div class="card border-info shadow-sm">
+          <div class="card-body">
+            <div class="h6 text-muted">Всего рассылок</div>
+            <div class="h4 fw-bold">{{ total_mailings }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-3">
+        <div class="card border-success shadow-sm">
+          <div class="card-body">
+            <div class="h6 text-muted">Активных</div>
+            <div class="h4 fw-bold text-success">{{ active_mailings }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-3">
+        <div class="card border-primary shadow-sm">
+          <div class="card-body">
+            <div class="h6 text-muted">Уникальных получателей</div>
+            <div class="h4 fw-bold text-primary">{{ unique_clients }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  {% endif %}
+
+  {# Каталог товаров #}
   {% if products %}
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
       {% for p in products %}
@@ -37,17 +70,17 @@
               <div class="mt-auto">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                   <span class="fw-bold">{{ p.price }} ₽</span>
-                  {# исправлено: catalog:product → catalog:product_detail #}
                   <a class="btn btn-sm btn-primary" href="{% url 'catalog:product_detail' p.pk %}">Подробнее</a>
                 </div>
-                <div class="d-flex gap-2">
-                  {% if user.is_authenticated %}
-                    {% if user == p.owner or perms.catalog.delete_product %}
+
+                {% if user.is_authenticated %}
+                  {% if user == p.owner or perms.catalog.delete_product %}
+                    <div class="d-flex gap-2">
                       <a href="{% url 'catalog:product_update' p.pk %}" class="btn btn-outline-primary btn-sm">Изменить</a>
                       <a href="{% url 'catalog:product_delete' p.pk %}" class="btn btn-outline-danger btn-sm">Удалить</a>
-                    {% endif %}
+                    </div>
                   {% endif %}
-                </div>
+                {% endif %}
               </div>
             </div>
           </div>

@@ -1,6 +1,8 @@
-from django.core.management.base import BaseCommand
 from django.contrib.auth.models import Group, Permission
-from catalog.models import Product
+from django.core.management.base import BaseCommand
+
+# from catalog.models import Product
+
 
 class Command(BaseCommand):
     help = "Создаёт группу Модератор продуктов с нужными правами."

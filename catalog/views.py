@@ -1,34 +1,31 @@
 """Контроллеры (views) для приложения catalog."""
-from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
-from django.shortcuts import render, get_object_or_404, redirect
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.cache import cache_page
-from django.core.cache import cache
-
-from .forms import ContactForm, ProductForm
-from .models import Product, ContactInfo
-from catalog.services import get_products_by_category
 
 import logging
+
+from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
+from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.cache import cache_page
+
+from catalog.services import get_products_by_category
+
+from .forms import ContactForm, ProductForm
+from .models import ContactInfo, Product
+
 logger = logging.getLogger(__name__)
 
 
-@login_required(login_url="users:login")  #  только авторизованные
-def product_create_view(request):
-    """Создание товара через форму."""
-    if request.method == "POST":
-        form = ProductForm(request.POST, request.FILES)
-        if form.is_valid():
-            product = form.save()
-            return redirect(product.get_absolute_url())
-    else:
-        form = ProductForm()
-    return render(request, "catalog/product_form.html", {"title": "Добавить товар", "form": form})
-
-
+# ==============================================================
+# Главная страница с товарами + статистика рассылок
+# ==============================================================
 def home_view(request: HttpRequest) -> HttpResponse:
-    """Главная страница с пагинацией."""
+    """
+    Главная страница магазина с пагинацией и статистикой рассылок.
+    Данные рассылок кешируются на 30 секунд.
+    """
+    # --- товары ---
     qs = Product.objects.select_related("category").order_by("-created_at")
     paginator = Paginator(qs, 8)
     page_number = request.GET.get("page", 1)
@@ -36,22 +33,55 @@ def home_view(request: HttpRequest) -> HttpResponse:
         page_obj = paginator.page(page_number)
     except (PageNotAnInteger, EmptyPage):
         page_obj = paginator.page(1)
-    return render(
-        request,
-        "catalog/home.html",
-        {
-            "title": "Магазин — Главная",
-            "products": page_obj,
-            "page_obj": page_obj,
-            "paginator": paginator,
-            "is_paginated": page_obj.has_other_pages(),
-        },
+
+    # --- статистика рассылок ---
+    cache_key = "home_stats_v1"
+    data = cache.get(cache_key)
+
+    if not data:
+        try:
+            from mailings.models import (  # импорт внутри, чтобы не ломалось при миграциях
+                Client,
+                Mailing,
+            )
+
+            total_mailings = Mailing.objects.count()
+            active_mailings = Mailing.objects.filter(status="Запущена").count()
+            unique_clients = Client.objects.count()
+        except Exception:
+            total_mailings = active_mailings = unique_clients = 0
+
+        data = {
+            "total_mailings": total_mailings,
+            "active_mailings": active_mailings,
+            "unique_clients": unique_clients,
+        }
+        cache.set(cache_key, data, 30)
+
+    # --- флаг менеджера / админа ---
+    is_manager = request.user.is_authenticated and (
+        request.user.is_staff or request.user.groups.filter(name="Менеджеры").exists()
     )
 
+    context = {
+        "title": "Магазин — Главная",
+        "products": page_obj,
+        "page_obj": page_obj,
+        "paginator": paginator,
+        "is_paginated": page_obj.has_other_pages(),
+        **data,
+        "is_manager": is_manager,  # 👈 теперь шаблон может просто проверить {% if is_manager %}
+    }
 
-@cache_page(60 * 15)  # кешируем на 15 минут
+    return render(request, "catalog/home.html", context)
+
+
+# ==============================================================
+# 🧩 Детальная страница товара (кеш Redis / LocMem)
+# ==============================================================
+@cache_page(60 * 15)
 def product_detail_view(request: HttpRequest, pk: int) -> HttpResponse:
-    """Детальная страница товара (кешируется Redis’ом)."""
+    """Детальная страница товара (кешируется на 15 минут)."""
     product = get_object_or_404(Product.objects.select_related("category"), pk=pk)
     return render(
         request,
@@ -60,45 +90,36 @@ def product_detail_view(request: HttpRequest, pk: int) -> HttpResponse:
     )
 
 
-def contacts_view(request: HttpRequest) -> HttpResponse:
-    """Контакты и форма обратной связи."""
-    success = False
-    form = ContactForm(request.POST or None)
-    if request.method == "POST" and form.is_valid():
-        success = True
-        form = ContactForm()
-    contacts = ContactInfo.objects.first()
-    return render(
-        request,
-        "catalog/contacts.html",
-        {"title": "Контакты", "form": form, "success": success, "contacts": contacts},
-    )
-
-
-
+# ==============================================================
+#  CRUD: Создание / Редактирование / Удаление товара
+# ==============================================================
 @login_required(login_url="users:login")
 def product_create_view(request):
-    """Создание товара текущим пользователем."""
+    """Создание нового товара (только авторизованные пользователи)."""
     if request.method == "POST":
         form = ProductForm(request.POST, request.FILES)
         if form.is_valid():
             product = form.save(commit=False)
-            product.owner = request.user  # назначаем владельца
-            product.save()                 # сохраняем в базу
-            return redirect(product.get_absolute_url())  # редирект на страницу товара
+            product.owner = request.user
+            product.save()
+            return redirect(product.get_absolute_url())
     else:
         form = ProductForm()
-    return render(request, "catalog/product_form.html", {"form": form})
+    return render(
+        request,
+        "catalog/product_form.html",
+        {"title": "Добавить товар", "form": form},
+    )
 
 
-@login_required(login_url="users:login")  #  редактировать только авторизованным
+@login_required(login_url="users:login")
 def product_update_view(request: HttpRequest, pk: int) -> HttpResponse:
-    """Редактирование товара через форму."""
+    """Редактирование существующего товара."""
     product = get_object_or_404(Product, pk=pk)
     if request.method == "POST":
         form = ProductForm(request.POST, request.FILES, instance=product)
         if form.is_valid():
-            product = form.save()
+            form.save()
             return redirect(product.get_absolute_url())
     else:
         form = ProductForm(instance=product)
@@ -109,18 +130,19 @@ def product_update_view(request: HttpRequest, pk: int) -> HttpResponse:
     )
 
 
-@login_required(login_url="users:login")  #  удалять только авторизованным
+@login_required(login_url="users:login")
 def product_delete_view(request: HttpRequest, pk: int) -> HttpResponse:
     """Удаление товара с подтверждением (только владелец или модератор)."""
     product = get_object_or_404(Product, pk=pk)
 
     # Проверка прав
-    if request.user != product.owner and not request.user.has_perm("catalog.delete_product"):
+    if request.user != getattr(product, "owner", None) and not request.user.has_perm("catalog.delete_product"):
         return HttpResponseForbidden("У вас нет прав на удаление этого товара.")
 
     if request.method == "POST":
         product.delete()
         return redirect("catalog:home")
+
     return render(
         request,
         "catalog/product_delete_confirm.html",
@@ -128,6 +150,9 @@ def product_delete_view(request: HttpRequest, pk: int) -> HttpResponse:
     )
 
 
+# ==============================================================
+# Категории и контакты
+# ==============================================================
 def category_products_view(request, slug: str):
     """
     Отображение всех товаров выбранной категории.
@@ -145,3 +170,23 @@ def category_products_view(request, slug: str):
         "products": products,
     }
     return render(request, "catalog/category_products.html", context)
+
+
+def contacts_view(request: HttpRequest) -> HttpResponse:
+    """Контакты и форма обратной связи."""
+    success = False
+    form = ContactForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        success = True
+        form = ContactForm()
+    contacts = ContactInfo.objects.first()
+    return render(
+        request,
+        "catalog/contacts.html",
+        {
+            "title": "Контакты",
+            "form": form,
+            "success": success,
+            "contacts": contacts,
+        },
+    )

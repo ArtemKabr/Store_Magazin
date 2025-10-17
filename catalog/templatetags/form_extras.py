@@ -1,7 +1,9 @@
 """Пользовательские template-фильтры для работы с формами."""
+
 from django import template
 
 register = template.Library()
+
 
 @register.filter
 def add_class(field, css: str):

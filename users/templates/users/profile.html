@@ -1,0 +1,11 @@
+{% extends "catalog/base.html" %}
+{% block content %}
+<div class="card card-body shadow-sm">
+  <h1 class="h4">Профиль</h1>
+  <p><strong>Email:</strong> {{ request.user.email }}</p>
+  {% if request.user.avatar %}<img src="{{ request.user.avatar.url }}" class="img-thumbnail" style="max-width:200px">{% endif %}
+  <p><strong>Телефон:</strong> {{ request.user.phone }}</p>
+  <p><strong>Страна:</strong> {{ request.user.country }}</p>
+  <a class="btn btn-outline-primary" href="{% url 'users:profile_edit' %}">Редактировать</a>
+</div>
+{% endblock %}

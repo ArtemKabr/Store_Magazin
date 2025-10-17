@@ -13,6 +13,7 @@ class ContactInfo(models.Model):
     """
     Контактные данные магазина (редактируются через админку).
     """
+
     email = models.EmailField("Email", blank=True, default="")
     phone = models.CharField("Телефон", max_length=50, blank=True, default="")
     address = models.CharField("Адрес", max_length=255, blank=True, default="")
@@ -32,6 +33,7 @@ class Category(models.Model):
     """
     Категория товара.
     """
+
     name = models.CharField("Название", max_length=150, unique=True)
     slug = models.SlugField("Слаг", max_length=160, unique=True, blank=True)
     description = models.TextField("Описание", blank=True, default="")
@@ -66,6 +68,7 @@ class Product(models.Model):
     """
     Товар каталога.
     """
+
     category = models.ForeignKey(
         Category,
         on_delete=models.PROTECT,
@@ -95,19 +98,19 @@ class Product(models.Model):
     ]
 
     status = models.CharField(
-       "Статус",
-        max_length = 20,
-        choices = STATUS_CHOICES,
-        default = "draft",
+        "Статус",
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="draft",
     )
 
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete = models.CASCADE,
-        verbose_name = "Владелец",
-        related_name = "products",
-        null = True,
-        blank = True,
+        on_delete=models.CASCADE,
+        verbose_name="Владелец",
+        related_name="products",
+        null=True,
+        blank=True,
     )
 
     class Meta:

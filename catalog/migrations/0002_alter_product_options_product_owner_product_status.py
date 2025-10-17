@@ -17,9 +17,7 @@ class Migration(migrations.Migration):
             name="product",
             options={
                 "ordering": ("-created_at",),
-                "permissions": [
-                    ("can_unpublish_product", "Может отменять публикацию продукта")
-                ],
+                "permissions": [("can_unpublish_product", "Может отменять публикацию продукта")],
                 "verbose_name": "Товар",
                 "verbose_name_plural": "Товары",
             },
