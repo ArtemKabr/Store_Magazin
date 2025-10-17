@@ -1,53 +1,88 @@
-"""Модель пользователя с авторизацией по email."""
-from django.contrib.auth.models import AbstractUser, BaseUserManager
+"""Модели сервиса рассылок."""
+from django.conf import settings
 from django.db import models
-from django.utils.translation import gettext_lazy as _
 
 
-class UserManager(BaseUserManager):
-    """Кастомный менеджер для работы с email в качестве логина."""
-    use_in_migrations = True
-
-    def _create_user(self, email, password, **extra_fields):
-        if not email:
-            raise ValueError("Email обязателен")
-        email = self.normalize_email(email)
-        user = self.model(email=email, username=email, **extra_fields)
-        user.set_password(password)
-        user.save(using=self._db)
-        return user
-
-    def create_user(self, email=None, password=None, **extra_fields):
-        extra_fields.setdefault("is_staff", False)
-        extra_fields.setdefault("is_superuser", False)
-        return self._create_user(email, password, **extra_fields)
-
-    def create_superuser(self, email=None, password=None, **extra_fields):
-        extra_fields.setdefault("is_staff", True)
-        extra_fields.setdefault("is_superuser", True)
-        return self._create_user(email, password, **extra_fields)
-
-
-class User(AbstractUser):
+class Client(models.Model):
     """
-    Кастомная модель пользователя.
-    Поля:
-    - email: уникальный, используется как логин
-    - avatar: изображение
-    - phone: номер телефона
-    - country: страна
+    Получатель рассылки.
+    owner — владелец (пользователь), для ограничения доступа по ТЗ.
     """
-    username = models.CharField(_("username"), max_length=150, blank=True)  # не уникален
-    email = models.EmailField(_("email address"), unique=True)
-    avatar = models.ImageField(upload_to="avatars/", blank=True, null=True, verbose_name="Аватар")
-    phone = models.CharField(max_length=32, blank=True, default="", verbose_name="Телефон")
-    country = models.CharField(max_length=64, blank=True, default="", verbose_name="Страна")
+    email = models.EmailField("Email", unique=True)
+    full_name = models.CharField("ФИО", max_length=255)
+    comment = models.TextField("Комментарий", blank=True, default="")
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="clients")
 
-    USERNAME_FIELD = "email"
-    REQUIRED_FIELDS: list[str] = []
-
-    objects = UserManager()
+    class Meta:
+        verbose_name = "Получатель"
+        verbose_name_plural = "Получатели"
+        permissions = [
+            ("view_all_clients", "Может просматривать всех клиентов (менеджер)"),
+        ]
 
     def __str__(self) -> str:
-        return self.email
+        return f"{self.full_name} <{self.email}>"
 
+
+class Message(models.Model):
+    """Шаблон сообщения."""
+    subject = models.CharField("Тема письма", max_length=255)
+    body = models.TextField("Тело письма")
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="messages")
+
+    class Meta:
+        verbose_name = "Сообщение"
+        verbose_name_plural = "Сообщения"
+        permissions = [
+            ("view_all_messages", "Может просматривать все сообщения (менеджер)"),
+        ]
+
+    def __str__(self) -> str:
+        return self.subject
+
+
+class Mailing(models.Model):
+    """Рассылка сообщений по клиентам."""
+    STATUS_CHOICES = (
+        ("Создана", "Создана"),
+        ("Запущена", "Запущена"),
+        ("Завершена", "Завершена"),
+    )
+
+    start_at = models.DateTimeField("Дата/время первой отправки")
+    finish_at = models.DateTimeField("Дата/время окончания отправки")
+    status = models.CharField("Статус", max_length=16, choices=STATUS_CHOICES, default="Создана")
+    message = models.ForeignKey(Message, on_delete=models.PROTECT, related_name="mailings", verbose_name="Сообщение")
+    clients = models.ManyToManyField(Client, related_name="mailings", verbose_name="Получатели")
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="mailings")
+
+    class Meta:
+        verbose_name = "Рассылка"
+        verbose_name_plural = "Рассылки"
+        permissions = [
+            ("view_all_mailings", "Может просматривать все рассылки (менеджер)"),
+            ("stop_mailings", "Может останавливать чужие рассылки (менеджер)"),
+        ]
+
+    def __str__(self) -> str:
+        return f"Рассылка #{self.pk} — {self.status}"
+
+
+class Attempt(models.Model):
+    """Попытка отправки по рассылке."""
+    STATUS_CHOICES = (
+        ("Успешно", "Успешно"),
+        ("Не успешно", "Не успешно"),
+    )
+
+    mailing = models.ForeignKey(Mailing, on_delete=models.CASCADE, related_name="attempts", verbose_name="Рассылка")
+    attempted_at = models.DateTimeField("Дата/время попытки", auto_now_add=True)
+    status = models.CharField("Статус", max_length=16, choices=STATUS_CHOICES)
+    server_response = models.TextField("Ответ почтового сервера", blank=True, default="")
+
+    class Meta:
+        verbose_name = "Попытка рассылки"
+        verbose_name_plural = "Попытки рассылки"
+
+    def __str__(self) -> str:
+        return f"{self.mailing_id} — {self.status} — {self.attempted_at:%Y-%m-%d %H:%M}"

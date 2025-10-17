@@ -1,0 +1,27 @@
+{% extends "catalog/base.html" %}
+{% block content %}
+<h1 class="h4 mb-3">Рассылка #{{ object.id }} — {{ object.status }}</h1>
+<p><strong>Сообщение:</strong> {{ object.message.subject }}</p>
+<p><strong>Получателей:</strong> {{ object.clients.count }}</p>
+<p><strong>Период:</strong> {{ object.start_at }} — {{ object.finish_at }}</p>
+
+<form method="post" action="{% url 'mailings:mailing_run' object.pk %}">
+  {% csrf_token %}
+  <button class="btn btn-success">Отправить вручную</button>
+  <a class="btn btn-outline-primary" href="{% url 'mailings:mailing_edit' object.pk %}">Изменить</a>
+  <a class="btn btn-outline-danger" href="{% url 'mailings:mailing_delete' object.pk %}">Удалить</a>
+</form>
+
+<hr>
+<h2 class="h5 mt-4">Попытки</h2>
+<table class="table table-sm">
+  <thead><tr><th>Время</th><th>Статус</th><th>Ответ</th></tr></thead>
+  <tbody>
+  {% for a in object.attempts.all|slice:":20" %}
+    <tr><td>{{ a.attempted_at }}</td><td>{{ a.status }}</td><td>{{ a.server_response|default:"—" }}</td></tr>
+  {% empty %}
+    <tr><td colspan="3">Попыток пока нет</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
