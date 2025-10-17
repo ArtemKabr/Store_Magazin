@@ -6,6 +6,7 @@ from django.conf.global_settings import CACHES
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
 
 # ✅ Загружаем .env из корня проекта
 load_dotenv(BASE_DIR / ".env", override=True)
@@ -75,37 +76,44 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# 🔎 Удобный логгер
-LOGGING = {
-    "version": 1, "disable_existing_loggers": False,
-    "handlers": {"console": {"class": "logging.StreamHandler"}},
-    "root": {"handlers": ["console"], "level": "INFO"},
-    "loggers": {
-        "django.request": {"handlers": ["console"], "level": "DEBUG", "propagate": False},
-        "django.db.backends": {"handlers": ["console"], "level": "INFO"},
-    },
-}
-
-
+# Пользовательская модель
 AUTH_USER_MODEL = "users.User"
 
-# 🔁 Редиректы после входа и выхода из аккаунта
+# ==========================================================
+# ⚙️ Настройки кеширования (вкл/выкл через .env)
+# ==========================================================
+CACHE_ENABLED = os.getenv("CACHE_ENABLED", "True").lower() in ("1", "true", "yes")
+REDIS_LOCATION = os.getenv("REDIS_LOCATION", "redis://127.0.0.1:6379/1")
+
+if CACHE_ENABLED:
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": REDIS_LOCATION,
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            },
+            "KEY_PREFIX": "store",
+        }
+    }
+
+    SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+    SESSION_CACHE_ALIAS = "default"
+
+else:
+    # 🔸 Фолбэк — стандартный in-memory кеш (для dev/тестов без Redis)
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "unique-snowflake",
+        }
+    }
+
+    SESSION_ENGINE = "django.contrib.sessions.backends.db"  # обычные сессии
+
+# ==========================================================
+# 🔁 Редиректы после логина и логаута
+# ==========================================================
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
-
-CACHE_ENABLED = True
-
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        },
-        "KEY_PREFIX": "store",
-    }
-}
-
-SESSION_ENGINE = "django.contrib.sessions.backends.cache"
-SESSION_CACHE_ALIAS = "default"
