@@ -3,14 +3,18 @@ from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.cache import cache_page
+from django.core.cache import cache
+
 from .forms import ContactForm, ProductForm
 from .models import Product, ContactInfo
-import logging
+from catalog.services import get_products_by_category
 
+import logging
 logger = logging.getLogger(__name__)
 
 
-@login_required(login_url="users:login")  # ✅ только авторизованные
+@login_required(login_url="users:login")  #  только авторизованные
 def product_create_view(request):
     """Создание товара через форму."""
     if request.method == "POST":
@@ -45,10 +49,15 @@ def home_view(request: HttpRequest) -> HttpResponse:
     )
 
 
+@cache_page(60 * 15)  # кешируем на 15 минут
 def product_detail_view(request: HttpRequest, pk: int) -> HttpResponse:
-    """Детальная страница товара."""
+    """Детальная страница товара (кешируется Redis’ом)."""
     product = get_object_or_404(Product.objects.select_related("category"), pk=pk)
-    return render(request, "catalog/product_detail.html", {"title": product.title, "product": product})
+    return render(
+        request,
+        "catalog/product_detail.html",
+        {"title": product.title, "product": product},
+    )
 
 
 def contacts_view(request: HttpRequest) -> HttpResponse:
@@ -117,3 +126,22 @@ def product_delete_view(request: HttpRequest, pk: int) -> HttpResponse:
         "catalog/product_delete_confirm.html",
         {"title": f"Удалить: {product.title}", "product": product},
     )
+
+
+def category_products_view(request, slug: str):
+    """
+    Отображение всех товаров выбранной категории.
+    Используется низкоуровневое кеширование.
+    """
+    cache_key = f"category_products_{slug}"
+    products = cache.get(cache_key)
+
+    if products is None:
+        products = list(get_products_by_category(slug))
+        cache.set(cache_key, products, 60 * 10)  # кеш 10 мин
+
+    context = {
+        "title": f"Товары категории: {slug}",
+        "products": products,
+    }
+    return render(request, "catalog/category_products.html", context)
