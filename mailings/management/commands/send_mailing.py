@@ -1,10 +1,13 @@
-from django.core.management.base import BaseCommand
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
-from mailings.models import Client, Message, Mailing
+from django.core.management.base import BaseCommand
+
+from mailings.models import Client, Mailing, Message
+
 
 class Command(BaseCommand):
     """Создаёт группу 'Менеджеры' и назначает права просмотра всех сущностей."""
+
     help = "Создаёт группу Менеджеры с нужными правами"
 
     def handle(self, *args, **options):

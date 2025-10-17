@@ -1,4 +1,5 @@
 """Модель пользователя с авторизацией по email."""
+
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -6,6 +7,7 @@ from django.utils.translation import gettext_lazy as _
 
 class UserManager(BaseUserManager):
     """Кастомный менеджер для работы с email в качестве логина."""
+
     use_in_migrations = True
 
     def _create_user(self, email, password, **extra_fields):
@@ -36,6 +38,7 @@ class User(AbstractUser):
     Кастомная модель пользователя.
     Авторизация по email.
     """
+
     username = models.CharField(_("Имя пользователя"), max_length=150, blank=True)  # не уникален
     email = models.EmailField(_("Email"), unique=True)
     avatar = models.ImageField(upload_to="avatars/", blank=True, null=True, verbose_name="Аватар")

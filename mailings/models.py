@@ -1,4 +1,5 @@
 """Модели сервиса рассылок."""
+
 from django.conf import settings
 from django.db import models
 
@@ -8,6 +9,7 @@ class Client(models.Model):
     Получатель рассылки.
     owner — владелец (пользователь), для ограничения доступа по ТЗ.
     """
+
     email = models.EmailField("Email", unique=True)
     full_name = models.CharField("ФИО", max_length=255)
     comment = models.TextField("Комментарий", blank=True, default="")
@@ -26,6 +28,7 @@ class Client(models.Model):
 
 class Message(models.Model):
     """Шаблон сообщения."""
+
     subject = models.CharField("Тема письма", max_length=255)
     body = models.TextField("Тело письма")
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="messages")
@@ -43,6 +46,7 @@ class Message(models.Model):
 
 class Mailing(models.Model):
     """Рассылка сообщений по клиентам."""
+
     STATUS_CHOICES = (
         ("Создана", "Создана"),
         ("Запущена", "Запущена"),
@@ -70,6 +74,7 @@ class Mailing(models.Model):
 
 class Attempt(models.Model):
     """Попытка отправки по рассылке."""
+
     STATUS_CHOICES = (
         ("Успешно", "Успешно"),
         ("Не успешно", "Не успешно"),

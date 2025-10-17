@@ -28,16 +28,12 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "email",
-                    models.EmailField(
-                        max_length=254, unique=True, verbose_name="Email"
-                    ),
+                    models.EmailField(max_length=254, unique=True, verbose_name="Email"),
                 ),
                 ("full_name", models.CharField(max_length=255, verbose_name="ФИО")),
                 (
                     "comment",
-                    models.TextField(
-                        blank=True, default="", verbose_name="Комментарий"
-                    ),
+                    models.TextField(blank=True, default="", verbose_name="Комментарий"),
                 ),
                 (
                     "owner",
@@ -51,9 +47,7 @@ class Migration(migrations.Migration):
             options={
                 "verbose_name": "Получатель",
                 "verbose_name_plural": "Получатели",
-                "permissions": [
-                    ("view_all_clients", "Может просматривать всех клиентов (менеджер)")
-                ],
+                "permissions": [("view_all_clients", "Может просматривать всех клиентов (менеджер)")],
             },
         ),
         migrations.CreateModel(
@@ -132,9 +126,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "attempted_at",
-                    models.DateTimeField(
-                        auto_now_add=True, verbose_name="Дата/время попытки"
-                    ),
+                    models.DateTimeField(auto_now_add=True, verbose_name="Дата/время попытки"),
                 ),
                 (
                     "status",
@@ -146,9 +138,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "server_response",
-                    models.TextField(
-                        blank=True, default="", verbose_name="Ответ почтового сервера"
-                    ),
+                    models.TextField(blank=True, default="", verbose_name="Ответ почтового сервера"),
                 ),
                 (
                     "mailing",

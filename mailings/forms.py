@@ -1,6 +1,8 @@
 """Формы CRUD для рассылок."""
+
 from django import forms
-from .models import Client, Message, Mailing
+
+from .models import Client, Mailing, Message
 
 
 class ClientForm(forms.ModelForm):

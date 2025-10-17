@@ -1,11 +1,13 @@
 """Сервисные функции рассылок."""
-from django.core.mail import send_mail
-from django.conf import settings
-from django.utils import timezone
-
-from .models import Mailing, Attempt
 
 from email.header import Header
+
+from django.conf import settings
+from django.core.mail import send_mail
+from django.utils import timezone
+
+from .models import Attempt, Mailing
+
 
 def send_mailing_now(mailing_id: int) -> tuple[int, int]:
     """
@@ -32,9 +34,7 @@ def send_mailing_now(mailing_id: int) -> tuple[int, int]:
             ok += 1 if sent else 0
             fail += 0 if sent else 1
         except Exception as e:
-            Attempt.objects.create(
-                mailing=mailing, status="Не успешно", server_response=str(e)
-            )
+            Attempt.objects.create(mailing=mailing, status="Не успешно", server_response=str(e))
             fail += 1
 
     # Обновим статус по времени

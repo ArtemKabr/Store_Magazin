@@ -1,21 +1,22 @@
 """Контроллеры CRUD для рассылок/клиентов/сообщений + попытки + ручной запуск."""
-from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+
 from django.contrib import messages
-from django.shortcuts import redirect, get_object_or_404
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
-from django.views.generic import (
-    ListView, CreateView, UpdateView, DeleteView, DetailView, View
-)
-from .models import Client, Message, Mailing, Attempt
-from .forms import ClientForm, MessageForm, MailingForm
+from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView, View
+
+from .forms import ClientForm, MailingForm, MessageForm
+from .models import Attempt, Client, Mailing, Message
 from .services import send_mailing_now
 
 
 # ======== Фильтрация по владельцу ========
 class OwnerQuerySetMixin:
     """Подмешивает фильтр по owner, кроме менеджеров с правами просмотра всех."""
+
     model = None
     view_all_perm = ""
 
@@ -117,9 +118,11 @@ class MailingUpdateView(LoginRequiredMixin, OwnerQuerySetMixin, UpdateView):
 
 class MailingDeleteView(LoginRequiredMixin, OwnerQuerySetMixin, DeleteView):
     """Удаление рассылки с подтверждением."""
+
     model = Mailing
     success_url = reverse_lazy("mailings:mailing_list")
     template_name = "mailings/confirm_delete.html"
+
 
 # ======== Попытки ========
 class AttemptListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
@@ -127,8 +130,10 @@ class AttemptListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     Список попыток. Даем доступ только авторизованным.
     Менеджеру — все попытки, обычному — только свои через фильтр по Mailing.owner.
     """
+
     model = Attempt
-    permission_required = "auth.view_user"  # любой авторизованный пройдёт, менеджеру можно расширить
+    permission_required = "auth.view_user"
+    # любой авторизованный пройдёт, менеджеру можно расширить
     paginate_by = 50
 
     def get_queryset(self):
@@ -142,6 +147,7 @@ class AttemptListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
 # ======== Ручной запуск рассылки ========
 class RunMailingView(LoginRequiredMixin, OwnerQuerySetMixin, View):
     """Ручной запуск рассылки."""
+
     model = Mailing
     view_all_perm = "mailings.view_all_mailings"
 

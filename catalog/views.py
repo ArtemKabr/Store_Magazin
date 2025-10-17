@@ -1,16 +1,18 @@
 """Контроллеры (views) для приложения catalog."""
-from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
-from django.shortcuts import render, get_object_or_404, redirect
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.cache import cache_page
-from django.core.cache import cache
-
-from .forms import ContactForm, ProductForm
-from .models import Product, ContactInfo
-from catalog.services import get_products_by_category
 
 import logging
+
+from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
+from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.cache import cache_page
+
+from catalog.services import get_products_by_category
+
+from .forms import ContactForm, ProductForm
+from .models import ContactInfo, Product
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +40,11 @@ def home_view(request: HttpRequest) -> HttpResponse:
 
     if not data:
         try:
-            from mailings.models import Mailing, Client  # импорт внутри, чтобы не ломалось при миграциях
+            from mailings.models import (  # импорт внутри, чтобы не ломалось при миграциях
+                Client,
+                Mailing,
+            )
+
             total_mailings = Mailing.objects.count()
             active_mailings = Mailing.objects.filter(status="Запущена").count()
             unique_clients = Client.objects.count()
@@ -53,9 +59,8 @@ def home_view(request: HttpRequest) -> HttpResponse:
         cache.set(cache_key, data, 30)
 
     # --- флаг менеджера / админа ---
-    is_manager = (
-        request.user.is_authenticated
-        and (request.user.is_staff or request.user.groups.filter(name="Менеджеры").exists())
+    is_manager = request.user.is_authenticated and (
+        request.user.is_staff or request.user.groups.filter(name="Менеджеры").exists()
     )
 
     context = {

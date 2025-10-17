@@ -1,11 +1,12 @@
 """Контроллеры пользователей: регистрация, авторизация, профиль."""
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView
 from django.core.mail import send_mail
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 
 from .forms import UserLoginForm, UserRegisterForm, UserUpdateForm
@@ -45,6 +46,7 @@ def register_view(request):
 
 class UserLoginView(LoginView):
     """Авторизация пользователя."""
+
     template_name = "users/login.html"
     form_class = UserLoginForm
     success_url = reverse_lazy("catalog:home")
@@ -52,6 +54,7 @@ class UserLoginView(LoginView):
 
 class UserLogoutView(LogoutView):
     """Выход из аккаунта (по GET)."""
+
     next_page = reverse_lazy("catalog:home")
 
     def get(self, request, *args, **kwargs):

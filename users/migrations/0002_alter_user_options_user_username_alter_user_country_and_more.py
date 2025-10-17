@@ -20,22 +20,16 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="user",
             name="username",
-            field=models.CharField(
-                blank=True, max_length=150, verbose_name="Имя пользователя"
-            ),
+            field=models.CharField(blank=True, max_length=150, verbose_name="Имя пользователя"),
         ),
         migrations.AlterField(
             model_name="user",
             name="country",
-            field=models.CharField(
-                blank=True, default="", max_length=64, verbose_name="Страна"
-            ),
+            field=models.CharField(blank=True, default="", max_length=64, verbose_name="Страна"),
         ),
         migrations.AlterField(
             model_name="user",
             name="phone",
-            field=models.CharField(
-                blank=True, default="", max_length=32, verbose_name="Телефон"
-            ),
+            field=models.CharField(blank=True, default="", max_length=32, verbose_name="Телефон"),
         ),
     ]

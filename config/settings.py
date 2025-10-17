@@ -1,6 +1,7 @@
 # config/settings.py
 """Основные настройки Django-проекта 'Store_Magazin' / 'Сервис управления рассылками'."""
 from pathlib import Path
+
 import environ
 
 # ==========================================================
@@ -39,7 +40,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-
     # Основные приложения проекта
     "catalog",
     "users",
