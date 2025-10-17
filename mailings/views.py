@@ -58,6 +58,7 @@ class ClientUpdateView(LoginRequiredMixin, OwnerQuerySetMixin, UpdateView):
 class ClientDeleteView(LoginRequiredMixin, OwnerQuerySetMixin, DeleteView):
     model = Client
     success_url = reverse_lazy("mailings:client_list")
+    template_name = "mailings/confirm_delete.html"
 
 
 # ======== Сообщения ========
@@ -83,6 +84,7 @@ class MessageUpdateView(LoginRequiredMixin, OwnerQuerySetMixin, UpdateView):
 class MessageDeleteView(LoginRequiredMixin, OwnerQuerySetMixin, DeleteView):
     model = Message
     success_url = reverse_lazy("mailings:message_list")
+    template_name = "mailings/confirm_delete.html"
 
 
 # ======== Рассылки ========
@@ -114,9 +116,10 @@ class MailingUpdateView(LoginRequiredMixin, OwnerQuerySetMixin, UpdateView):
 
 
 class MailingDeleteView(LoginRequiredMixin, OwnerQuerySetMixin, DeleteView):
+    """Удаление рассылки с подтверждением."""
     model = Mailing
     success_url = reverse_lazy("mailings:mailing_list")
-
+    template_name = "mailings/confirm_delete.html"
 
 # ======== Попытки ========
 class AttemptListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
@@ -138,11 +141,20 @@ class AttemptListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
 
 # ======== Ручной запуск рассылки ========
 class RunMailingView(LoginRequiredMixin, OwnerQuerySetMixin, View):
+    """Ручной запуск рассылки."""
     model = Mailing
     view_all_perm = "mailings.view_all_mailings"
 
     def post(self, request, pk):
-        mailing = get_object_or_404(self.get_queryset(), pk=pk)
+        """Отправка рассылки вручную с проверкой прав доступа."""
+        # Получаем queryset вручную (так как View не имеет get_queryset)
+        qs = Mailing.objects.all()
+        user = request.user
+        if not user.has_perm(self.view_all_perm):
+            qs = qs.filter(owner=user)
+
+        mailing = get_object_or_404(qs, pk=pk)
+
         ok, fail = send_mailing_now(mailing.pk)
         messages.info(request, f"Отправлено: {ok}, ошибок: {fail}")
         return redirect("mailings:mailing_detail", pk=pk)

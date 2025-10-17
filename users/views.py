@@ -1,7 +1,7 @@
 """Контроллеры пользователей: регистрация, авторизация, профиль."""
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView
 from django.core.mail import send_mail
@@ -77,3 +77,10 @@ def profile_edit_view(request):
     else:
         form = UserUpdateForm(instance=request.user)
     return render(request, "users/profile_edit.html", {"form": form})
+
+
+def logout_view(request):
+    """Выход из аккаунта по GET без CSRF."""
+    logout(request)  # Завершает сессию пользователя
+    messages.success(request, "Вы успешно вышли из аккаунта ✅")
+    return redirect("catalog:home")  # Возврат на главную

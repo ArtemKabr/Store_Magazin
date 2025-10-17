@@ -52,6 +52,12 @@ def home_view(request: HttpRequest) -> HttpResponse:
         }
         cache.set(cache_key, data, 30)
 
+    # --- флаг менеджера / админа ---
+    is_manager = (
+        request.user.is_authenticated
+        and (request.user.is_staff or request.user.groups.filter(name="Менеджеры").exists())
+    )
+
     context = {
         "title": "Магазин — Главная",
         "products": page_obj,
@@ -59,6 +65,7 @@ def home_view(request: HttpRequest) -> HttpResponse:
         "paginator": paginator,
         "is_paginated": page_obj.has_other_pages(),
         **data,
+        "is_manager": is_manager,  # 👈 теперь шаблон может просто проверить {% if is_manager %}
     }
 
     return render(request, "catalog/home.html", context)

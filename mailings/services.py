@@ -5,6 +5,7 @@ from django.utils import timezone
 
 from .models import Mailing, Attempt
 
+from email.header import Header
 
 def send_mailing_now(mailing_id: int) -> tuple[int, int]:
     """
@@ -17,7 +18,7 @@ def send_mailing_now(mailing_id: int) -> tuple[int, int]:
     for client in mailing.clients.all():
         try:
             sent = send_mail(
-                subject=mailing.message.subject,
+                subject=str(Header(mailing.message.subject, "utf-8")),
                 message=mailing.message.body,
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[client.email],
