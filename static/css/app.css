@@ -1,0 +1,84 @@
+body {
+  background: url("../img/background.jpg") no-repeat center center fixed;
+  background-size: cover;
+  background-attachment: fixed;
+  background-color: #f8f9fa; /* запасной цвет */
+}
+
+
+/* Баннер-видео */
+.video-banner {
+  position: relative;
+  width: 100%;
+  height: 100vh;        /* во весь экран */
+  overflow: hidden;
+}
+
+.video-banner video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;    /* растягивает без искажений */
+}
+
+.video-banner .video-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3); /* лёгкое затемнение */
+}
+
+
+/* Полупрозрачные карточки товаров */
+.card {
+  background: rgba(255, 255, 255, 0.85); /* 👈 белый с прозрачностью */
+  backdrop-filter: blur(6px);             /* лёгкое размытие фона */
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+/* Эффект при наведении */
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+
+footer {
+  position: relative;
+  bottom: 0;
+  width: 100%;
+}
+
+/* Плавный переход фона и размытия */
+.navbar-scroll {
+  transition: background-color 0.4s ease, backdrop-filter 0.4s ease;
+}
+
+/* Прозрачная шапка при прокрутке */
+.navbar-transparent {
+  background-color: rgba(33, 37, 41, 0.3) !important; /* ещё более прозрачный фон */
+  backdrop-filter: blur(10px); /* чуть сильнее размыто */
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15); /* лёгкая граница для аккуратности */
+}
+
+/* Текст и ссылки в шапке */
+.navbar-transparent .nav-link,
+.navbar-transparent .navbar-brand {
+  color: rgba(255, 255, 255, 0.9) !important;
+  transition: color 0.3s ease;
+}
+
+/* При наведении — чуть ярче */
+.navbar-transparent .nav-link:hover {
+  color: #fff !important;
+}
+
+

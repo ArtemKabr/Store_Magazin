@@ -1,0 +1,25 @@
+{% extends "catalog/base.html" %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-md-6">
+    {% if product.image %}
+      <img src="{{ product.image.url }}" class="img-fluid rounded shadow-sm" alt="{{ product.title }}">
+    {% endif %}
+  </div>
+  <div class="col-md-6">
+    <h1 class="h4 mb-3">{{ product.title }}</h1>
+    <p class="text-muted">{{ product.category.name }}</p>
+    <p>{{ product.description }}</p>
+    <p class="fw-bold h5">{{ product.price }} ₽</p>
+
+    <a href="{% url 'catalog:home' %}" class="btn btn-secondary mt-3">← Назад к каталогу</a>
+
+    {% if user.is_authenticated %}
+      {% if user == product.owner or perms.catalog.delete_product %}
+        <a href="{% url 'catalog:product_update' product.pk %}" class="btn btn-outline-primary mt-3 ms-2">Редактировать</a>
+        <a href="{% url 'catalog:product_delete' product.pk %}" class="btn btn-danger mt-3 ms-2">Удалить</a>
+      {% endif %}
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
