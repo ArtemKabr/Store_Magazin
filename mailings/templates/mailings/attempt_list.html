@@ -1,0 +1,20 @@
+{% extends "catalog/base.html" %}
+{% block content %}
+<h1 class="h4 mb-3">Попытки рассылок</h1>
+<table class="table table-sm table-bordered bg-white shadow-sm">
+  <thead><tr><th>ID</th><th>Рассылка</th><th>Время</th><th>Статус</th><th>Ответ</th></tr></thead>
+  <tbody>
+  {% for a in object_list %}
+    <tr>
+      <td>{{ a.id }}</td>
+      <td>{{ a.mailing_id }}</td>
+      <td>{{ a.attempted_at|date:"Y-m-d H:i" }}</td>
+      <td>{{ a.status }}</td>
+      <td>{{ a.server_response|truncatechars:60 }}</td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="5">Попыток пока нет</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

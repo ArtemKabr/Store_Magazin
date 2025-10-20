@@ -1,14 +1,15 @@
 # config/urls.py
 """Корневые URL проекта: подключение URL приложения catalog через include."""
-from django.contrib import admin
-from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib import admin
+from django.urls import include, path
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("catalog.urls")),
-    path("users/", include("users.urls")),
+    path("users/", include(("users.urls", "users"), namespace="users")),
+    path("mailings/", include(("mailings.urls", "mailings"), namespace="mailings")),
 ]
 
 if settings.DEBUG:
