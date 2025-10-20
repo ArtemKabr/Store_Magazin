@@ -1,20 +1,207 @@
-# venv / кеши / IDE
-.venv/
+# ========================
+# 🐍 PYTHON / VENV
+# ========================
 __pycache__/
 *.py[cod]
-*.log
+*.pyo
+*.pyd
+*.pdb
+*.py.class
+*.egg
+*.egg-info/
+.eggs/
+.Python
+.venv/
+venv/
+env/
+ENV/
+pip-log.txt
+pip-delete-this-directory.txt
 
-# Django
+# ========================
+# ⚙️ DJANGO
+# ========================
 db.sqlite3
 *.sqlite3
 
-# env
-.env
+# Миграции (оставляем только __init__.py)
+*/migrations/*.py
+!*/migrations/__init__.py
 
-# IDE
+# Django caches & logs
+*.log
+*.pot
+*.pyc
+local_settings.py
+instance/
+.webassets-cache
+
+# ========================
+# 🐘 POSTGRESQL
+# ========================
+# Docker volume / локальные данные
+postgres_data/
+pg_data/
+data/postgres/
+*.sql
+*.dump
+*.db
+*.db-journal
+*.pgsql
+*.backup
+
+# ========================
+# 🔑 ENV / SECRET FILES
+# ========================
+.env
+.env.*
+!.env_template
+secrets.json
+config.json
+credentials.json
+
+# ========================
+# 🐳 DOCKER
+# ========================
+Dockerfile~
+docker-compose.override.yml
+docker-compose.dev.yml
+docker-compose.local.yml
+.dockerignore
+docker-data/
+docker-volume/
+*.pid
+*.lock
+*.tmp
+*.bak
+*.swp
+tmp/
+logs/
+backup/
+run/
+
+# ========================
+# 🧱 STATIC / MEDIA / BUILD
+# ========================
+staticfiles/
+static/
+media/
+mediafiles/
+
+# Node / frontend assets
+node_modules/
+dist/
+build/
+.cache/
+.npm/
+yarn-error.log
+pnpm-lock.yaml
+package-lock.json
+coverage/
+*.map
+
+# ========================
+# 🧰 IDE / SYSTEM FILES
+# ========================
 .idea/
 .vscode/
+*.sublime-project
+*.sublime-workspace
 
-# статика/медиа (если будут собираться)
-staticfiles/
-media/
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+.nfs*
+
+# ========================
+# 🧪 TESTS / COVERAGE
+# ========================
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+pytest_cache/
+pytestdebug.log
+pytest.ini
+
+# ========================
+# 🧹 LINTERS / FORMATTERS / PRE-COMMIT
+# ========================
+# mypy cache
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# flake8 cache
+.flake8cache/
+flake8.log
+
+# black formatter
+.black/
+black.log
+
+# isort cache
+.isort.cfg
+.isort.log
+
+# pylint cache
+.pylint.d/
+pylint.log
+
+# ruff cache
+.ruff_cache/
+
+# bandit security tool
+bandit.log
+
+# pre-commit hook files
+.pre-commit-config.yaml
+.pre-commit-hooks.yaml
+.pre-commit.log
+.pre-commit-cache/
+.pre-commit/
+
+# ========================
+# 🚀 DEPLOYMENT / CI/CD
+# ========================
+*.pid
+*.sock
+*.gz
+*.log
+
+# AWS / Cloud / CI конфиги (если приватные)
+.aws/
+.gcloud/
+.heroku/
+*.pem
+*.key
+*.crt
+*.csr
+*.pub
+
+# ========================
+# 🧾 PROJECT META
+# ========================
+poetry.lock
+Pipfile.lock
+
+# System reports / profiling
+.prof
+*.dump
+*.core
