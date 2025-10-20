@@ -1,12 +1,15 @@
-from django.contrib.auth.views import LoginView, LogoutView
-from django.urls import reverse_lazy
-from django.contrib import messages
-from django.contrib.auth import login
-from django.core.mail import send_mail
-from django.shortcuts import render, redirect
-from django.conf import settings
+"""Контроллеры пользователей: регистрация, авторизация, профиль."""
 
-from .forms import UserLoginForm, UserRegisterForm
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import LoginView, LogoutView
+from django.core.mail import send_mail
+from django.shortcuts import redirect, render
+from django.urls import reverse_lazy
+
+from .forms import UserLoginForm, UserRegisterForm, UserUpdateForm
 
 
 def register_view(request):
@@ -43,6 +46,7 @@ def register_view(request):
 
 class UserLoginView(LoginView):
     """Авторизация пользователя."""
+
     template_name = "users/login.html"
     form_class = UserLoginForm
     success_url = reverse_lazy("catalog:home")
@@ -50,9 +54,36 @@ class UserLoginView(LoginView):
 
 class UserLogoutView(LogoutView):
     """Выход из аккаунта (по GET)."""
+
     next_page = reverse_lazy("catalog:home")
 
     def get(self, request, *args, **kwargs):
-        """Позволяет выполнять logout через ссылку или кнопку без CSRF."""
+        """Позволяет выполнять logout через ссылку без CSRF."""
         return self.post(request, *args, **kwargs)
 
+
+@login_required
+def profile_view(request):
+    """Просмотр профиля текущего пользователя."""
+    return render(request, "users/profile.html")
+
+
+@login_required
+def profile_edit_view(request):
+    """Редактирование профиля текущего пользователя."""
+    if request.method == "POST":
+        form = UserUpdateForm(request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Профиль обновлён ✅")
+            return redirect("users:profile")
+    else:
+        form = UserUpdateForm(instance=request.user)
+    return render(request, "users/profile_edit.html", {"form": form})
+
+
+def logout_view(request):
+    """Выход из аккаунта по GET без CSRF."""
+    logout(request)  # Завершает сессию пользователя
+    messages.success(request, "Вы успешно вышли из аккаунта ✅")
+    return redirect("catalog:home")  # Возврат на главную

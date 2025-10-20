@@ -1,7 +1,8 @@
 # catalog/management/commands/seed_products.py
 from __future__ import annotations
-from hashlib import md5
+
 from decimal import Decimal
+from hashlib import md5
 from pathlib import Path
 
 from django.core.management.base import BaseCommand
@@ -9,7 +10,6 @@ from django.db import transaction
 from django.utils.text import slugify
 
 from catalog.models import Category, Product
-
 
 # путь к папке с изображениями
 MEDIA_ROOT = Path(__file__).resolve().parent.parent.parent.parent / "media" / "products"
@@ -32,7 +32,7 @@ def make_unique_slug(text: str, used: set[str]) -> str:
 class Command(BaseCommand):
     """Команда для очистки и наполнения БД тестовыми категориями и продуктами."""
 
-    help = "Очищает таблицы Category и Product, добавляет тестовые записи с фото, если найдены в media/products."
+    help = "Очищает таблицы Category и Product, " "добавляет тестовые записи с фото, если найдены в media/products."
 
     def handle(self, *args, **options):
         with transaction.atomic():

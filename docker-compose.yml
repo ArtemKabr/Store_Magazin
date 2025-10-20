@@ -1,0 +1,41 @@
+# ⚙️ Docker Compose для Django + PostgreSQL + Redis
+
+services:
+  web:
+    build: .
+    container_name: store_magazin_web
+    command: gunicorn store_magazin.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - .:/var/www/html
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env  # Django берёт все переменные окружения из этого файла
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:16
+    container_name: store_magazin_db
+    restart: always
+    env_file:
+      - .env  # PostgreSQL тоже берёт переменные отсюда
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7
+    container_name: store_magazin_redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data:
